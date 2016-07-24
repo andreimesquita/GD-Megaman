@@ -7,7 +7,8 @@ TagManager:
   - ground
   - player
   - enemy
-  - wall
+  - damager
+  - arm
   layers:
   - Default
   - TransparentFX
@@ -22,7 +23,7 @@ TagManager:
   - Enemy
   - Ground
   - Scenery
-  - Wall
+  - Damager
   - 
   - 
   - 
