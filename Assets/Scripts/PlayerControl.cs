@@ -1,184 +1,212 @@
-﻿using UnityEngine;
+﻿#pragma warning disable 0168 //variable declared but not used
+#pragma warning disable 0219 //variable assigned but not used
+#pragma warning disable 0414 //private field assigned but not used
 
-/// <summary>
-/// Esta classe é responsável por captar o Input de um player particular (servindo tanto para
-/// o player 1, quanto para o player 2) e fazendo o seu personagem mover e saltar.
-/// </summary>
-public class PlayerControl : MonoBehaviour
+using UnityEngine;
+
+namespace Megaman.Player
 {
-    //Definição dos layers
-    private int LAYER_MASK_SCENERY;
-    
-    [Header("Input")]
-    [SerializeField]
-    private PlayerKeysSO playerKeysSO;
-
-    [Header("Movement & Jump")]
-    [SerializeField]
-    private float moveForce = 200f;
-    [SerializeField]
-    private float maxSpeed = 6f;
-    [SerializeField]
-    private float jumpForce = 15f;
-    [SerializeField]
-    [Range(.1f, 1)]
-    private float wallJumpForce = 1f;
-    [SerializeField]
-    [Range(0f, 1f)]
-    private float wallJumpDelay = .3f;
-
-    ///O ideal é manter este valor em .3f.
-    private const float groundCheckCircleRadius = .3f;
-    
-    private float wallJumpCounter = 0;
-
-    //Collision detection Transforms
-    private Transform groundCheck, wallCheck;
-
-    //Internal logic variables
-    private bool IsGrounded, IsFacingRight = true, WannaJump, IsLeaningTheWall, canMove = true;
-
-    private static byte counter = 0;
-    private byte labelYPos;
-
-    private new Rigidbody2D rigidbody2D;
-
-    float hAxis = 0;
-
-    void Awake()
-	{
-        labelYPos = counter++;
-
-		groundCheck = transform.Find("groundCheck");
-        wallCheck = transform.Find("wallCheck");
-
-        rigidbody2D = GetComponent<Rigidbody2D>();
-    }
-
-    void Start()
+    /// <summary>
+    /// Esta classe é responsável por captar o Input de um player particular (servindo tanto para
+    /// o player 1, quanto para o player 2) e fazendo o seu personagem mover e saltar.
+    /// </summary>
+    [RequireComponent(typeof(Rigidbody2D))]
+    public class PlayerControl : MonoBehaviour
     {
-        LAYER_MASK_SCENERY = LayerMask.NameToLayer("Scenery");
-    }
+        //Definição dos layers
+        private int LAYER_MASK_SCENERY;
 
-    void Update()
-	{
-        CheckCollisionTriggers();
+        [Header("Input")]
+        [SerializeField]
+        private PlayerKeysSO playerKeysSO;
 
-        if (!canMove)
+        [Header("Movement")]
+        [SerializeField]
+        [Range(1, 400)]
+        private float moveForce = 200f;
+        [SerializeField]
+        [Range(1, 20)]
+        private float maxMovSpeed = 6f;
+        [SerializeField]
+        [Range(-20, -1)]
+        private float minFallingVelocity = -8;
+
+        [Header("Jump")]
+        [SerializeField]
+        [Range(1, 30)]
+        private float jumpForce = 15f;
+        [SerializeField]
+        [Range(.1f, 1)]
+        private float wallJumpForce = 1f;
+        [SerializeField]
+        [Range(0f, 1f)]
+        private float wallJumpDelay = .22f;
+
+        private float wallJumpCounter = 0;
+
+        //Collision detection Transforms
+        private Transform groundCheck, leftWallCheck, rightWallCheck;
+
+        /// <summary>
+        /// Raio do circulo utilizado para verificar colisão com o cenário.
+        /// O ideal é manter este valor em .3f.
+        /// </summary>
+        private const float groundCheckCircleRadius = .3f;
+
+        //Internal logic variables
+        private bool IsGrounded, canMove = true;
+        private bool IsLeaningAWall, IsLeaningTheRightWall, IsLeaningTheLeftWall;
+
+        private new Rigidbody2D rigidbody2D;
+
+        /// <summary>
+        /// Determina posição em que o personagem quer se mover (left == -1 e Right == 1)
+        /// </summary>
+        float hAxis;
+
+        /* Os seguintes atributos servem apenas para a correta apresentação 
+           dos Labels no método OnGUI() */
+        private static byte counter = 0;
+        private byte labelYPos;
+
+        void Awake()
         {
-            //Impossibilita que o player se mova durante um pequeno intervalo de tempo, logo após o salto
-            wallJumpCounter += Time.deltaTime;
+            rigidbody2D = GetComponent<Rigidbody2D>();
 
-            if (wallJumpCounter < wallJumpDelay)
-                return;
+            labelYPos = counter++;
 
-            //Reseta o contador
-            wallJumpCounter = 0;
+            groundCheck = transform.FindChild("groundCheck");
 
-            canMove = true;
+            if (groundCheck == null)
+                throw new MissingComponentException("groundCheck não encontrado!");
+
+            leftWallCheck = transform.FindChild("leftWallCheck");
+
+            if (leftWallCheck == null)
+                throw new MissingComponentException("leftWallCheck não encontrado!");
+
+            rightWallCheck = transform.FindChild("rightWallCheck");
+
+            if (rightWallCheck == null)
+                throw new MissingComponentException("rightWallCheck não encontrado!");
         }
 
-        //Permite que o personagem salte apenas quando está no chão
-        if (Input.GetKeyDown(playerKeysSO.jumpKey) && (IsGrounded || IsLeaningTheWall))
-			WannaJump = true;
-	}
-
-	void FixedUpdate()
-	{
-        hAxis = 0;
-
-        if (canMove)
+        void Start()
         {
-            if (Input.GetKey(playerKeysSO.leftKey))
+            LAYER_MASK_SCENERY = LayerMask.NameToLayer("Scenery");
+        }
+
+        void Update()
+        {
+            CheckCollisionTriggers();
+
+            ReadInput();
+
+            if (!canMove)
             {
-                hAxis = -1;
+                //Impossibilita que o player se mova durante um pequeno intervalo de tempo, logo após o salto
+                wallJumpCounter += Time.deltaTime;
+
+                if (wallJumpCounter < wallJumpDelay)
+                    return;
+
+                //Reseta o contador
+                wallJumpCounter = 0;
+
+                canMove = true;
             }
-            else if (Input.GetKey(playerKeysSO.rightKey))
+        }
+
+        void FixedUpdate()
+        {
+            if (canMove)
             {
-                hAxis = 1;
-            }
-        }
-
-        // If the player is changing direction (h has a different sign to velocity.x) or hasn't reached maxSpeed yet...
-        if (hAxis * rigidbody2D.velocity.x < maxSpeed)
-        {
-            // ... add a force to the player.
-            rigidbody2D.AddForce(Vector2.right * hAxis * moveForce);
-        }
-
-        // If the player's horizontal velocity is greater than the maxSpeed...
-        if (Mathf.Abs(rigidbody2D.velocity.x) > maxSpeed)
-        {
-            // ... set the player's velocity to the maxSpeed in the x axis.
-            rigidbody2D.velocity = new Vector2(Mathf.Sign(rigidbody2D.velocity.x) * maxSpeed,
-                                               rigidbody2D.velocity.y);
-        }
-
-        // If the input is moving the player right and the player is facing left...
-        if (hAxis > 0 && !IsFacingRight)
-        {
-            // ... flip the player.
-            FlipHorizontally();
-        }
-        // Otherwise if the input is moving the player left and the player is facing right...
-        else if (hAxis < 0 && IsFacingRight)
-        {
-            // ... flip the player.
-            FlipHorizontally();
-        }
-
-		// If the player should jump...
-		if(WannaJump)
-		{
-            Vector2 jumpVelocity = new Vector2(0f, jumpForce);
-
-            if (IsLeaningTheWall && !IsGrounded)
+                // If the player is changing direction (h has a different sign to velocity.x) or hasn't reached maxSpeed yet...
+                if (hAxis * rigidbody2D.velocity.x < maxMovSpeed)
+                {
+                    // ... Adiciona força no moveimtno do personagem
+                    rigidbody2D.AddForce(Vector2.right * hAxis * moveForce);
+                }
+            } else if (Mathf.Abs(rigidbody2D.velocity.x) > maxMovSpeed)
             {
-                jumpVelocity.x = (IsFacingRight ? -jumpForce : jumpForce) * wallJumpForce;
-
-                canMove = false;
-
-                rigidbody2D.velocity = Vector2.zero;
+                // ... define a velocidade do player como sendo sua velocidade máxima, no eixo X.
+                rigidbody2D.velocity = new Vector2(Mathf.Sign(rigidbody2D.velocity.x) * maxMovSpeed,
+                                                   rigidbody2D.velocity.y);
             }
 
-            // Add a vertical force to the player.
-            rigidbody2D.AddForce(jumpVelocity, ForceMode2D.Impulse);
+            //Se a velocidade vertical, quando o player está caindo, é menor do que sua velocidade mínima...
+            if (rigidbody2D.velocity.y < minFallingVelocity)
+            {
+                // ... define a velocidade Y do player como sendo sua velocidade mínima, no eixo X.
+                rigidbody2D.velocity = new Vector2(rigidbody2D.velocity.x, minFallingVelocity);
+            }
+        }
 
-            // Make sure the player can't jump again until the jump conditions from Update are satisfied.
-            WannaJump = false;
-		}
-	}
-	
-    void OnGUI()
-    {
-        GUI.color = Color.white;
+        private void CheckCollisionTriggers()
+        {
+            //Verifica se o personagem está no chão
+            IsGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckCircleRadius,
+                                                 1 << LAYER_MASK_SCENERY);
 
-        GUI.Label(new Rect(8, labelYPos * 16, Screen.width, Screen.height), 
-          string.Format("{0} ({1}, {2}, {3}) - IsGrounded:{4} | IsLeaningTheWall:{5}", 
-          name, playerKeysSO.jumpKey, playerKeysSO.leftKey, playerKeysSO.rightKey, 
-          IsGrounded, IsLeaningTheWall));
+            //Verifica se o personagem está encostado em alguma parede
+            IsLeaningTheLeftWall =
+                Physics2D.OverlapPoint(leftWallCheck.position, 1 << LAYER_MASK_SCENERY);
+
+            IsLeaningTheRightWall =
+                Physics2D.OverlapPoint(rightWallCheck.position, 1 << LAYER_MASK_SCENERY);
+
+            IsLeaningAWall = IsLeaningTheLeftWall || IsLeaningTheRightWall;
+        }
+
+        private void ReadInput()
+        {
+            hAxis = 0;
+
+            if (canMove)
+            {
+                if (Input.GetKey(playerKeysSO.leftKey))
+                    hAxis = -1;
+                else if (Input.GetKey(playerKeysSO.rightKey))
+                    hAxis = 1;
+            }
+
+            //Permite que o personagem salte apenas quando está no chão
+            if (Input.GetKeyDown(playerKeysSO.jumpKey) && (IsGrounded || IsLeaningAWall))
+            {
+                Vector2 jumpVelocity = new Vector2(0f, jumpForce);
+
+                //Permite ao personagem saltar quando encostado na parede
+                if (IsLeaningAWall && !IsGrounded)
+                {
+                    jumpVelocity.x = (IsLeaningTheRightWall ? -jumpForce : jumpForce) * wallJumpForce;
+
+                    //Anula a velocidade atual do rigidbody antes de forçar o salto
+                    rigidbody2D.velocity = Vector2.zero;
+
+                    canMove = false;
+                }
+
+                // Add a vertical force to the player.
+                rigidbody2D.AddForce(jumpVelocity, ForceMode2D.Impulse);
+            }
+        }
+
+        void OnGUI()
+        {
+            GUI.color = Color.white;
+
+            GUI.Label(new Rect(8, labelYPos * 16, Screen.width, Screen.height),
+              string.Format("{0} ({1}, {2}, {3}) - IsGrounded:{4} | IsLeaningTheWall:{5}",
+              name, playerKeysSO.jumpKey, playerKeysSO.leftKey, playerKeysSO.rightKey,
+              IsGrounded, IsLeaningAWall));
+        }
+
+        void OnDrawGismoz()
+        {
+            Gizmos.color = Color.yellow;
+
+            Gizmos.DrawSphere(groundCheck.position, groundCheckCircleRadius);
+        }
+
     }
-
-    private void CheckCollisionTriggers()
-    {
-        //Verifica se o personagem está no chão
-        //IsGrounded = Physics2D.Linecast(transform.position, groundCheck.position,
-        //                              1 << LAYER_MASK_SCENERY);
-
-        IsGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckCircleRadius, 
-                                             1 << LAYER_MASK_SCENERY);
-
-        IsLeaningTheWall = Physics2D.OverlapPoint(wallCheck.position, 1 << LAYER_MASK_SCENERY);
-    }
-
-    private void FlipHorizontally ()
-	{
-		IsFacingRight = !IsFacingRight;
-
-		/* Multiplica a escala local do player por -1, fazendo com que o sprite 
-        rotacione horizontalmente, junto com os checkers que são filhos deste objeto */
-		Vector3 theScale = transform.localScale;
-		theScale.x *= -1;
-		transform.localScale = theScale;
-	}
 }
