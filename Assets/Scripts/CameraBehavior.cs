@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
-using UnityEditor;
-using System.Collections;
+using Megaman.Util;
 
 namespace Megaman
 {
@@ -22,6 +21,11 @@ namespace Megaman
         /// </summary>
         [SerializeField]
         private Transform player2;
+
+        [Header("Camera")]
+        [SerializeField]
+        [Range(1, 30)]
+        private float minOrthographicZoom = 7;
 
         private float defaultZ;
 
@@ -50,7 +54,41 @@ namespace Megaman
             newCameraPos.z = defaultZ;
 
             camera.transform.position = newCameraPos;
+
+            float newOrtographicSize = FindRequiredSize();
+
+            camera.orthographicSize = newOrtographicSize;
         }
 
+        private float FindRequiredSize()
+        {
+            // Find the position the camera rig is moving towards in its local space.
+            Vector3 desiredLocalPos = transform.InverseTransformPoint(camera.transform.position);
+
+            // Start the camera's size calculation at zero.
+            float size = 0f;
+
+            //Player1 - Normaliza a posição da câmera com base no player1
+            Vector3 targetLocalPos = transform.InverseTransformPoint(player1.position);
+
+            Vector3 desiredPosToTarget = targetLocalPos - desiredLocalPos;
+
+            size = Mathf.Max(size, Mathf.Abs(desiredPosToTarget.y));
+
+            size = Mathf.Max(size, Mathf.Abs(desiredPosToTarget.x) / (camera.aspect * .8f));
+
+            ////Player2 - Normaliza a posição da câmera com base no player2
+            targetLocalPos = transform.InverseTransformPoint(player1.position);
+
+            desiredPosToTarget = targetLocalPos - desiredLocalPos;
+
+            size = Mathf.Max(size, Mathf.Abs(desiredPosToTarget.y));
+
+            size = Mathf.Max(size, Mathf.Abs(desiredPosToTarget.x) / (camera.aspect * .8f));
+
+            size = Mathf.Max(size, minOrthographicZoom);
+
+            return size;
+        }
     }
 }
