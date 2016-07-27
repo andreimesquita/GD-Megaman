@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEditor;
 
-namespace Megaman.Util.Editor
+namespace Megaman.Util
 {
     /// <summary>
     /// Propriedade que apresenta 

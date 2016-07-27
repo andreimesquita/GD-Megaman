@@ -17,18 +17,19 @@ public class ShootController : MonoBehaviour
         rigidbody2D.velocity = new Vector2(vel, 0);
     }
 
-    private void OnCollisionEnter2D(Collision2D collision2D)
+    private void OnTriggerEnter2D(Collider2D collider2D)
     {
-        if (collision2D.transform.CompareTag("enemy"))
+        if (collider2D.transform.CompareTag("enemy"))
         {
-            Destroy(this);
+            Destroy(this.gameObject);
+        } else if (collider2D.transform.CompareTag("shoot") && 
+                   rigidbody2D.velocity.x != collider2D.GetComponent<Rigidbody2D>().velocity.x)
+        {
+            // Inverte a velocidade em X e move para cima
+            rigidbody2D.velocity = new Vector3(-rigidbody2D.velocity.x, Mathf.Abs(rigidbody2D.velocity.x));
+
+            // Destroi este GameObject após 4 segundos
+            Destroy(this.gameObject, 4f);
         }
-
-        //if (collision2D.transform.CompareTag("shoot"))
-        //{
-        //    rigidbody2D.velocity = collision2D.transform.up * Math.Abs(rigidbody2D.velocity.x);
-        //}
-
-        //Debug.Log("OnCollisionEnter: " + rigidbody2D.velocity);
     }
 }

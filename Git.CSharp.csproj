@@ -66,6 +66,7 @@
     <Compile Include="Assets\Scripts\CameraBehavior.cs" />
     <Compile Include="Assets\Scripts\PlayerControl.cs" />
     <Compile Include="Assets\Scripts\PlayerKeysSO.cs" />
+    <Compile Include="Assets\Scripts\ShootController.cs" />
     <Compile Include="Assets\Scripts\Util\Extensions\Vector3Extensions.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\SyntaxTree\UnityVS\2015\UnityVS.CSharp.targets" />

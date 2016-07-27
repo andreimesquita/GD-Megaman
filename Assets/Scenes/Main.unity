@@ -133,6 +133,22 @@ Prefab:
       propertyPath: m_RootOrder
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1000011156521414, guid: 70ab4b59aa982bb4ba72799319c180a4, type: 2}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 21275268, guid: 70ab4b59aa982bb4ba72799319c180a4, type: 2}
+      propertyPath: m_SortingLayerID
+      value: -1783731295
+      objectReference: {fileID: 0}
+    - target: {fileID: 21275268, guid: 70ab4b59aa982bb4ba72799319c180a4, type: 2}
+      propertyPath: m_SortingOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 11467370, guid: 70ab4b59aa982bb4ba72799319c180a4, type: 2}
+      propertyPath: shootVelocity
+      value: 50
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 70ab4b59aa982bb4ba72799319c180a4, type: 2}
   m_IsPrefabParent: 0
@@ -807,6 +823,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player1: {fileID: 78318915}
   player2: {fileID: 1869996415}
+  minOrthographicZoom: 7
 --- !u!1 &1264874922
 GameObject:
   m_ObjectHideFlags: 0
@@ -952,6 +969,10 @@ Prefab:
     - target: {fileID: 429092, guid: e8ed8e7dcba19b445a6294324e59aa69, type: 2}
       propertyPath: m_RootOrder
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 11467370, guid: e8ed8e7dcba19b445a6294324e59aa69, type: 2}
+      propertyPath: shootVelocity
+      value: 50
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: e8ed8e7dcba19b445a6294324e59aa69, type: 2}
