@@ -15,15 +15,15 @@ namespace Megaman.Player
     {
         private bool isLookingLeft = false;
 
+        [Header("Shoot")]
         [SerializeField]
         private float shootVelocity;
+        [SerializeField]
+        private GameObject prefebShoot;
 
         //Definição dos layers
         private int LAYER_MASK_SCENERY;
         private int LAYER_MASK_PLAYER;
-
-        [SerializeField]
-        private GameObject prefebShoot;
 
         [Header("Input")]
         [SerializeField]
@@ -63,7 +63,7 @@ namespace Megaman.Player
         /// Raio do circulo utilizado para verificar colisão com o cenário.
         /// O ideal é manter este valor em .3f.
         /// </summary>
-        private const float groundCheckCircleRadius = .5f;
+        private const float groundCheckCircleRadius = .3f;
 
         //Internal logic variables
         private bool IsGrounded, canMove = true;
