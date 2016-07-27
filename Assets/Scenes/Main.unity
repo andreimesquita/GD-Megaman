@@ -133,10 +133,6 @@ Prefab:
       propertyPath: m_RootOrder
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 11467370, guid: 70ab4b59aa982bb4ba72799319c180a4, type: 2}
-      propertyPath: wallJumpDelay
-      value: 0.22
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 70ab4b59aa982bb4ba72799319c180a4, type: 2}
   m_IsPrefabParent: 0
@@ -956,10 +952,6 @@ Prefab:
     - target: {fileID: 429092, guid: e8ed8e7dcba19b445a6294324e59aa69, type: 2}
       propertyPath: m_RootOrder
       value: 2
-      objectReference: {fileID: 0}
-    - target: {fileID: 11467370, guid: e8ed8e7dcba19b445a6294324e59aa69, type: 2}
-      propertyPath: wallJumpDelay
-      value: 0.22
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: e8ed8e7dcba19b445a6294324e59aa69, type: 2}

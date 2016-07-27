@@ -9,6 +9,8 @@ TagManager:
   - enemy
   - damager
   - arm
+  - wall
+  - shoot
   layers:
   - Default
   - TransparentFX
@@ -18,13 +20,13 @@ TagManager:
   - UI
   - 
   - 
-  - 
-  - Player
+  - Player1
+  - Player2
   - Enemy
   - Ground
   - Scenery
   - Damager
-  - 
+  - Shoot
   - 
   - 
   - 

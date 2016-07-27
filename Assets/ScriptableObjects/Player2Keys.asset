@@ -11,6 +11,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a21d8e6d887e084f89de40ae33b1a0f, type: 3}
   m_Name: Player2Keys
   m_EditorClassIdentifier: 
-  jumpKey: 261
-  leftKey: 260
-  rightKey: 262
+  jumpKey: 273
+  leftKey: 276
+  rightKey: 275
+  fire: 32
+  otherPlayerLayer: Player1

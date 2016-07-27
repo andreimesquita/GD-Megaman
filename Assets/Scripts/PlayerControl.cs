@@ -13,12 +13,24 @@ namespace Megaman.Player
     [RequireComponent(typeof(Rigidbody2D))]
     public class PlayerControl : MonoBehaviour
     {
+        private bool isLookingLeft = false;
+
+        [SerializeField]
+        private float shootVelocity;
+
         //Definição dos layers
         private int LAYER_MASK_SCENERY;
+        private int LAYER_MASK_PLAYER;
+
+        [SerializeField]
+        private GameObject prefebShoot;
 
         [Header("Input")]
         [SerializeField]
         private PlayerKeysSO playerKeysSO;
+
+        private Transform shootRight;
+        private Transform shootLeft;
 
         [Header("Movement")]
         [SerializeField]
@@ -51,7 +63,7 @@ namespace Megaman.Player
         /// Raio do circulo utilizado para verificar colisão com o cenário.
         /// O ideal é manter este valor em .3f.
         /// </summary>
-        private const float groundCheckCircleRadius = .3f;
+        private const float groundCheckCircleRadius = .5f;
 
         //Internal logic variables
         private bool IsGrounded, canMove = true;
@@ -89,11 +101,22 @@ namespace Megaman.Player
 
             if (rightWallCheck == null)
                 throw new MissingComponentException("rightWallCheck não encontrado!");
+
+            shootRight = transform.FindChild("shootRight");
+
+            if (shootRight == null)
+                throw new MissingComponentException("shootRight não encontrado!");
+
+            shootLeft = transform.FindChild("shootLeft");
+
+            if (shootLeft == null)
+                throw new MissingComponentException("shootLeft não encontrado!");
         }
 
         void Start()
         {
             LAYER_MASK_SCENERY = LayerMask.NameToLayer("Scenery");
+            LAYER_MASK_PLAYER = LayerMask.NameToLayer(playerKeysSO.otherPlayerLayer);
         }
 
         void Update()
@@ -101,7 +124,7 @@ namespace Megaman.Player
             CheckCollisionTriggers();
 
             ReadInput();
-
+             //test
             if (!canMove)
             {
                 //Impossibilita que o player se mova durante um pequeno intervalo de tempo, logo após o salto
@@ -146,7 +169,10 @@ namespace Megaman.Player
         {
             //Verifica se o personagem está no chão
             IsGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckCircleRadius,
-                                                 1 << LAYER_MASK_SCENERY);
+                                                 1 << LAYER_MASK_SCENERY)
+                                                 
+                         || Physics2D.OverlapCircle(groundCheck.position, groundCheckCircleRadius,
+                                                 1 << LAYER_MASK_PLAYER);
 
             //Verifica se o personagem está encostado em alguma parede
             IsLeaningTheLeftWall =
@@ -165,9 +191,15 @@ namespace Megaman.Player
             if (canMove)
             {
                 if (Input.GetKey(playerKeysSO.leftKey))
+                {
                     hAxis = -1;
+                    isLookingLeft = true;
+                }
                 else if (Input.GetKey(playerKeysSO.rightKey))
+                {
                     hAxis = 1;
+                    isLookingLeft = false;
+                }
             }
 
             //Permite que o personagem salte apenas quando está no chão
@@ -188,6 +220,15 @@ namespace Megaman.Player
 
                 // Add a vertical force to the player.
                 rigidbody2D.AddForce(jumpVelocity, ForceMode2D.Impulse);
+            }
+
+            if (Input.GetKeyDown(playerKeysSO.fire))
+            {
+                GameObject gameObject = Instantiate(prefebShoot);
+
+                gameObject.transform.position = isLookingLeft ? shootLeft.position : shootRight.position;  
+
+                gameObject.GetComponent<ShootController>().AddVelocity(isLookingLeft ? -shootVelocity : shootVelocity);
             }
         }
 

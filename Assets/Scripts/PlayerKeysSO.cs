@@ -5,7 +5,8 @@ using UnityEditor;
 
 [CreateAssetMenu(fileName = "PlayerKeysSO", menuName = "Megaman/PlayerKeysSO", order = 1)]
 public class PlayerKeysSO : ScriptableObject {
-    public KeyCode jumpKey, leftKey, rightKey;
+    public KeyCode jumpKey, leftKey, rightKey, fire;
+    public string otherPlayerLayer;
 
 #if UNITY_EDITOR || WINDOWS || LINUX
     [MenuItem("Megaman/Create/Player Keys")]
